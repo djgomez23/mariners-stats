@@ -7,3 +7,4 @@ Core dataset detailing the Seattle Mariners batting stats during the 2025 regula
 To map the MLB IDs in the core dataset to player names, a comprehensive list of player information was found at [SmartFantasyBaseball.com](https://www.smartfantasybaseball.com/tools/).
 
 ### Other Sources
+Followed [this tutorial](https://www.geeksforgeeks.org/reactjs/how-to-create-a-multi-page-website-using-react-js/) for a refresher on creating multi-page React apps.
