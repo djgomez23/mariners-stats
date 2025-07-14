@@ -8,3 +8,9 @@ To map the MLB IDs in the core dataset to player names, a comprehensive list of 
 
 ### Other Sources
 Followed [this tutorial](https://www.geeksforgeeks.org/reactjs/how-to-create-a-multi-page-website-using-react-js/) for a refresher on creating multi-page React apps.
+
+Follwed [this starter code](https://d3-graph-gallery.com/graph/parallel_custom.html) to create the parallel coordinates plot.
+
+Followed these video tutorials to help create backend server:
+- [How to Connect a MongoDB Database to React](https://youtu.be/SV0o0qOmKOQ?si=008EiZx8W4emQsBr)
+- [MongoDB & Node Setup with Vite](https://youtu.be/CE1H4t8t2yY?si=8X7BBCTpsZ0H58xG)
