@@ -20,7 +20,7 @@ playerIdsRoutes.route("/player_ids").get(async (request, response) => {
 
 // 2. Retrieve by MLB ID
 // http://localhost:3000/player_ids/:mlbId
-playerIdsRoutes.route("/player_ids/:mlbId").get(async (request, response) => {
+playerIdsRoutes.route("/player_ids/player/:mlbId").get(async (request, response) => {
     let db = database.getDB();
     const mlbId = parseInt(request.params.mlbId);
 
@@ -49,7 +49,7 @@ playerIdsRoutes.route("/player_ids/:mlbId").get(async (request, response) => {
 playerIdsRoutes.route("/player_ids/pitchers").get(async (request, response) => {
     let db = database.getDB();
     try {
-        let data = await db.collection("player_ids").find({"POS": {"$eq": "P"}}).toArray();
+        let data = await db.collection("player_ids").find({"POS": "P"}).toArray();
         if (data.length > 0) {
             // express equivalent of a return statement
             response.json(data);

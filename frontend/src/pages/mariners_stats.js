@@ -7,7 +7,7 @@ import ParallelCoords from "../components/plots/parallelCoords/parallel_coords";
 const MarinersStats = () => {
     const [loading, setLoading] = useState(true);
 
-    if (loading) return <div>Loading...</div>;
+    // if (loading) return <div>Loading...</div>;
 
     return (
         <div>

@@ -5,11 +5,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as d3 from "d3";
 
-const ParallelPlot = ({ dimensions, data }) => {
+const ParallelPlot = ({ dimensions, data, colorScale }) => {
     const ref = useRef();
     // const [data, setData] = useState();
     // const [plotData, setPlotData] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
 
     // just need to return an svg tag with the reference key back to the useEffect hook
     // with the plot information
@@ -30,12 +30,12 @@ const ParallelPlot = ({ dimensions, data }) => {
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         const color = d3.scaleOrdinal()
-            .domain(outTypes)
+            .domain(colorScale)
             .range(d3.schemeTableau10);
 
         let y = {};
 
-        for (i in dimensions) {
+        for (const i in dimensions) {
             const name = dimensions[i];
             y[name] = d3.scaleLinear()
                 .domain([0, 100])
