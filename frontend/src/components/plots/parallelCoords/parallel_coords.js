@@ -1,22 +1,23 @@
 // NOT TESTED
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import * as d3 from "d3";
 import axios from "axios";
 import ParallelPlot from "./plot";
 
 const ParallelCoords = () => {
-    const ref = useRef();
-    const [data, setData] = useState();
-    const [pitcherData, setPitcherData] = useState();
-    const [filteredPitchers, setFilteredPitchers] = useState();
+    // const ref = useRef();
+    const [data, setData] = useState([]);
+    const [pitcherData, setPitcherData] = useState([]);
+    const [filteredPitchers, setFilteredPitchers] = useState([]);
     const [selectedPitcher, setSelectedPitcher] = useState("all");
     const [plotData, setPlotData] = useState([]);
     const [dimensions, setDimensions] = useState([]);
     const [outTypeScale, setOutTypeScale] = useState([]);
     const [loading, setLoading] = useState(true);
     // const [rawData, setRawData] = useState();
-    //const [error, setError] = useState(null);
+    // const [error, setError] = useState(false);
+
 
     // useEffect hook
     // when doing data fetching, want to use useEffect hook
@@ -29,11 +30,12 @@ const ParallelCoords = () => {
         // this list must be filtered below in the frontend for just those pitchers with matching MLBID numbers
         // to those in the total outs list (default status)
         async function getPitchers() {
+            console.log("Fetching pitchers");
             const response = await axios.get("http://localhost:3000/player_ids/pitchers");
             // if request is successful, set state
+            // confirmed that the pitcher data is being set appropriately
             if (response.status === 200) {
                 setPitcherData(response.data);
-                setLoading(false);
             }
         }
         getPitchers();
@@ -41,12 +43,24 @@ const ParallelCoords = () => {
 
     // this will rerun when selectedPitcher changes based on user interaction
     useEffect(() => {
+        // console.log("Selected Pitcher hook");
         // this call gets all outs for all pitchers the mariners have faced
+        // console.log("set pitchers:", pitcherData);
         async function getAllOuts() {
-            const response = await axios.get("http://localhost:3000/mariners_stats/outs");
-            // if request is successful, set state
-            if (response.status === 200) {
-                setData(response.data);
+            try {
+                const response = await axios.get("http://localhost:3000/mariners_stats/outs");
+                // if request is successful, set state
+                // out data is not being set properly for whatever reason
+                // printing out response.data shows the data, but setData is not working
+                if (response.status === 200) {
+                    console.log(response.status);
+                    // console.log(response.data);
+                    setData(response.data);
+                    filterData(response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching all outs:", error);
+            } finally {
                 setLoading(false);
             }
         }
@@ -54,27 +68,40 @@ const ParallelCoords = () => {
 
         // need separate function for pitcher specific outs
         async function getPitcherOuts() {
-            // this could cause an issue based on data type
-            // in other words, I can't remember whether selectedPitcher needs to be read as an int or string
-            const response = await axios.get(`http://localhost:3000/mariners_stats/outs/${selectedPitcher}`);
-            // if request is successful, set state
-            if (response.status === 2000) {
-                setData(response.data);
+            try {
+                // this could cause an issue based on data type
+                // in other words, I can't remember whether selectedPitcher needs to be read as an int or string
+                const response = await axios.get(`http://localhost:3000/mariners_stats/outs/${selectedPitcher}`);
+                // if request is successful, set state
+                if (response.status === 200) {
+                    setData(response.data);
+                    // console.log(data);
+                    filterData(response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching pitcher specific outs:", error);
+            } finally {
                 setLoading(false);
             }
         }
         // getPitcherOuts();
 
         if (selectedPitcher === "all") {
+            console.log("Fetching all outs");
             getAllOuts();
         } else {
+            console.log("Fetching specific pitcher outs");
             getPitcherOuts();
         }
-    }, [selectedPitcher]);
+    }, [selectedPitcher, pitcherData]);
 
-    // this hook will handle data preprocessing after it has been fetched from the server
-    useEffect(() => {
-        if (!data || data.length === 0) {
+    // this function is supposed to handle data preprocessing after it has been fetched from the server
+    // the data is being fetched correctly from the server
+    // but there is an issue with the timing
+    // the function still tries to run before the data is loaded
+    function filterData(unfilteredData) {
+        console.log("Begin filtering");
+        if (!unfilteredData || unfilteredData.length === 0) {
             setData([]);
             //setDimensions([]);
             return;
@@ -87,16 +114,18 @@ const ParallelCoords = () => {
 
         // event types filterd for batter outs
         const outTypes = ["field_out", "strike_out", "strikeout_double_play", "grounded_into_double_play"];
-        setOutTypeScale(outTypes);
+        // setOutTypeScale(outTypes);
 
         // new key to indicate whether the event was an out
         // remember this format as it adds a new "column" to the existing data object
-        const processedData = data.map((d) => ({
+        
+        const processedData = unfilteredData.map((d) => ({
             ...d,
-            isOut: outTypes.includes(d.event)
+            isOut: outTypes.includes(d.events)
         }));
         // find all unique pitch types
         const allPitchTypes = [...new Set(processedData.map((d) => d.pitch_name))].sort();
+        setOutTypeScale(allPitchTypes);
 
         // find total plate appearance counts for each batter
         const totalPAsByBatter = d3.rollup(
@@ -105,42 +134,44 @@ const ParallelCoords = () => {
             (d) => d.batter
         );
 
+        // console.log("finding outs:", processedData.map((d) => d.isOut));
+
         // group data by each batter and each out type
         // this will make up the data for each line
-        const groupedByBatterAndOut = d3.group(
+        const groupedByBatterAndPitch = d3.group(
             processedData.filter((d) => d.isOut),
             (d) => d.batter,
-            (d) => d.event
+            (d) => d.pitch_name
         );
 
         let transformedPlotData = [];
 
-        // loops for each batter first with outMap being array of each out type associated with the batter
-        for (const [batter, outMap] of groupedByBatterAndOut) {
-            // loops through each out type with pitchesForOut being array of the pitches associated with that
-            // batter and that out type
-            for (const [outType, pitchesForOut] of outMap) {
+        // loops through each batter first with pitchMap being array of each pitch type associated with the batter
+        for (const [batter, pitchMap] of groupedByBatterAndPitch) {
+            // loops through each out type with outsForPitch being array of the outs associated with that
+            // batter and that pitch type
+            for (const [pitchType, outsForPitch] of pitchMap) {
                 let lineData = {
                     batterId: batter,
-                    outType: outType
+                    pitchType: pitchType
                 };
 
-                const countsThisOutForBatter = pitchesForOut.length;
+                const countsThisPitchForBatter = outsForPitch.length;
                 const totalPAsForThisBatter = totalPAsByBatter.get(batter);
                 // this is how to add new key to object
-                lineData.outPercentage = (countsThisOutForBatter / totalPAsForThisBatter) * 100;
+                lineData.outPercentage = (countsThisPitchForBatter / totalPAsForThisBatter) * 100;
 
                 // initializes out/batter count for each pitch type to 0
-                allPitchTypes.forEach((pitchType) => {
-                    lineData[pitchType] = 0;
+                outTypes.forEach((outType) => {
+                    lineData[outType] = 0;
                 });
 
-                pitchesForOut.forEach((pa) => {
+                outsForPitch.forEach((pa) => {
                     // hasOwnProperty looks at whether the object has the corresponding property
                     // and does not inherit it
                     // I think the property name is pitch_name, assuming it is same as column name
-                    if (lineData.hasOwnProperty(pa.pitch_name)) {
-                        lineData[pa.pitch_name]++
+                    if (lineData.hasOwnProperty(pa.events)) {
+                        lineData[pa.events]++
                     }
                 });
                 transformedPlotData.push(lineData);
@@ -149,32 +180,36 @@ const ParallelCoords = () => {
 
         const plotDimensions = [
             "outPercentage",
-            ...allPitchTypes
+            ...outTypes
         ];
 
         setDimensions(plotDimensions);
 
+
         setPlotData(transformedPlotData);
 
-    }, [data]);
+        // filter pitchers from the player ID collection to match the pitchers listed in the
+        // mariners stats database
+        // need to check if this can be optimized
+        const foundPitchers = [...new Set(unfilteredData.map((bat) => bat.pitcher))];
+        let pitcherIntersection = [];
+        for (const i of pitcherData) {
+            if (foundPitchers.includes(i.MLBID)) {
+                pitcherIntersection.push(i);
+            }
+        }
+        setFilteredPitchers(pitcherIntersection);
+    }
 
     const handlePitcherChange = (event) => {
         setSelectedPitcher(event.target.value);
     };
-
-    // filter pitchers from the player ID collection to match the pitchers listed in the
-    // mariners stats database
-    // need to check if this can be optimized
-    const foundPitchers = [...new Set(data.map((bat) => bat.pitcher))];
-    let pitcherIntersection = [];
-    for (const i of pitcherData) {
-        if (foundPitchers.has(i.MLBID)) {
-            pitcherIntersection.push(i);
-        }
+    
+    if (loading) {
+        console.log("Loading");
+        return <div>Loading data...</div>;
     }
-    setFilteredPitchers(pitcherIntersection);
 
-    if (loading) return <div>Loading data...</div>;
 
     // drop down added below
     return (

@@ -18,12 +18,11 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
         // everything below here should probably be in its own component for sake of modularity
 
         const margin = {top: 30, right: 50, bottom: 10, left: 50};
-        const width = 460 - margin.left - margin.right;
-        const height = 400 - margin.top - margin.bottom;
+        const width = 650 - margin.left - margin.right;
+        const height = 600 - margin.top - margin.bottom;
 
     // append the svg object to the body of the page
         const svg = d3.select(ref.current)
-            .append("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
