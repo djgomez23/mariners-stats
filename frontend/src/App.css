@@ -38,9 +38,6 @@
 }
 
 .axis {
-  opacity: 0.4;
-}
-
-.axis-hover {
-  opacity: 1;
+  color: black;
+  opacity: 0.5;
 }

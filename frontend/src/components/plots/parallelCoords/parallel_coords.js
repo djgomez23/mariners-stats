@@ -1,4 +1,9 @@
-// NOT TESTED
+// TO DO:
+// have not yet tested the pitcher filtering
+// need to check the line colors
+// also want to adjust the units for the axes; it's confusing with them being percentages and counts; just stick to percentages
+// also need to clear the paths upon rerendering
+// not sure if the axes should be cleared too or if its possible to add animation to transform them when the pitcher changes
 
 import React, { useState, useEffect } from "react";
 import * as d3 from "d3";
@@ -169,7 +174,7 @@ const ParallelCoords = () => {
                 outsForPitch.forEach((pa) => {
                     // hasOwnProperty looks at whether the object has the corresponding property
                     // and does not inherit it
-                    // I think the property name is pitch_name, assuming it is same as column name
+                    // originally pa.pitch_name when the axes were switched
                     if (lineData.hasOwnProperty(pa.events)) {
                         lineData[pa.events]++
                     }
@@ -186,6 +191,7 @@ const ParallelCoords = () => {
         setDimensions(plotDimensions);
 
 
+        console.log(transformedPlotData);
         setPlotData(transformedPlotData);
 
         // filter pitchers from the player ID collection to match the pitchers listed in the
@@ -217,6 +223,7 @@ const ParallelCoords = () => {
             <h2>Parallel Coordinates Plot of Outs For the Mariners' Offense Based on Pitch Type</h2>
             <label htmlFor="pitcher-filter">Filter by opposing pitcher: </label>
             <select id="pitcher-filter" value={selectedPitcher} onChange={handlePitcherChange}>
+                <option key="all"  value="all">Select Pitcher</option>
                 {filteredPitchers.map(option => (
                     <option key={option.MLBID} value={option.MLBID}>
                         {option.MLBNAME}
