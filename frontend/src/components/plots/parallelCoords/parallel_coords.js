@@ -4,6 +4,7 @@
 // also want to adjust the units for the axes; it's confusing with them being percentages and counts; just stick to percentages
 // also need to clear the paths upon rerendering
 // not sure if the axes should be cleared too or if its possible to add animation to transform them when the pitcher changes
+// need to map batter IDs to player names
 
 import React, { useState, useEffect } from "react";
 import * as d3 from "d3";
@@ -108,11 +109,9 @@ const ParallelCoords = () => {
         console.log("Begin filtering");
         if (!unfilteredData || unfilteredData.length === 0) {
             setData([]);
-            //setDimensions([]);
             return;
         }
 
-        // console.log(loading);
 
         // needed column names:
         // player_name, batter, pitcher, events not na, pitch_name
@@ -138,8 +137,6 @@ const ParallelCoords = () => {
             (D) => D.length,
             (d) => d.batter
         );
-
-        // console.log("finding outs:", processedData.map((d) => d.isOut));
 
         // group data by each batter and each out type
         // this will make up the data for each line

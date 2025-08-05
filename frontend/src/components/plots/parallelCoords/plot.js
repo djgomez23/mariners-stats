@@ -8,7 +8,7 @@
 // to launch frontend:
 // navigate to frontend folder and type "npm start"
 
-import React, { useRef, useMemo } from "react";
+import React, { useRef } from "react";
 import * as d3 from "d3";
 
 const ParallelPlot = ({ dimensions, data, colorScale }) => {
@@ -28,14 +28,28 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
     const svg = d3.select(ref.current)
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
+        .attr("background-color", "#F3F6F7")
         //.attr("viewbox", `0 0 300 600`)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    const colorPalette = [
+        "#0D2D56",
+        "#15498B",
+        "#1D65C0",
+        "#3983E1",
+        "#6EA4E9",
+        "#A3C5F1",
+        "#C5CED3",
+        "#B8FFFF",
+        "#79FCFC",
+        "#00D5D6",
+        "#009899",
+        "#005B5C"
+    ];
     const color = d3.scaleOrdinal()
         .domain(colorScale)
-        .range(d3.schemeTableau10);
-
+        .range(colorPalette);
     
     const outTypes = ["field_out", "strike_out", "strikeout_double_play", "grounded_into_double_play"];
     
@@ -51,7 +65,6 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
     const yScale = d3.scaleLinear()
         .range([height, 0])
         .domain([0, max]);
-
     */
 
     let yScale = {};
@@ -64,8 +77,8 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
     /*
     const yScale = useMemo(() => {
         const maxes = [];
-        for (const outType of outTypes) {
-            const outMax = d3.max(data, (d) => d[outType]);
+        for (const pitchType of pitchTypes) {
+            const outMax = d3.max(data, (d) => d[pitchType]);
             maxes.push(outMax);
         }
         const max = Math.max(maxes);
@@ -81,7 +94,7 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
 
     // highlight pitch type that is hovered
     const highlight = (d) => {
-        const selectedOut = d.outType;
+        const selectedOut = d.pitchType;
 
         // turn all groups gray first
         d3.selectAll(".line")
@@ -105,15 +118,12 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
             .duration(200)
             .delay(1000)
             .style("stroke", (d) => {
-                return (color(d.outType));
+                return (color(d.pitchType));
             })
             .style("opacity", "1");
     }
 
     function path(d) {
-        // console.log(d["outPercentage"]);
-        // console.log("xScale for outPercentage:", xScale("strike_out"));
-        // console.log(d3.line()(dimensions.map((i) => [xScale(i), yScale(d[i])])));
         return d3.line()(dimensions.map((i) => [xScale(i), yScale[i](d[i])]));
     }
 
@@ -122,10 +132,10 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
         .data(data)
         .enter()
         .append("path")
-        .attr("class", (d) => "line-" + d.outType)
+        .attr("class", (d) => "line-" + d.pitchType)
         .attr("d", path)
         .style("fill", "none")
-        .style("stroke", (d) => color(d.outType))
+        .style("stroke", (d) => color(d.pitchType))
         .style("opacity", 0.5)
         .on("mouseover", highlight)
         .on("mouseout", doNotHighlight);
