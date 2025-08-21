@@ -196,8 +196,9 @@ const ParallelCoords = () => {
             }
         }
 
+        // removing outPercentage just to see if it skews things less visually
         const plotDimensions = [
-            "outPercentage",
+            //"outPercentage",
             ...outTypes
         ];
 
