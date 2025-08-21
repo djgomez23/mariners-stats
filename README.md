@@ -19,12 +19,10 @@ Followed these video tutorials to help create backend server:
 
 ### TODO
 - add hamburger menu to navbar
-- test the pitcher filtering
-- check the line color highlighting
-- want to adjust the units for the axes
-    - it's confusing with them being percentages and counts
-    - just stick to percentages
-- need to clear the paths upon rerendering
+- test the pitcher filtering (!!)
+- check the line color highlighting (!) (partially addressed)
+- need to clear the paths upon rerendering (!!!)
     - not sure if the axes should be cleared too or if its possible to add animation to transform them when the pitcher changes
-- need to map batter IDs to player names
-- add hover labels to the plot lines
+    - check if the axes are also being duplicated
+- need to map batter IDs to player names (!!)
+- add hover labels to the plot lines (!)

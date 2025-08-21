@@ -168,12 +168,28 @@ const ParallelCoords = () => {
                     lineData[outType] = 0;
                 });
 
+                let paEvents = new Set();
+
                 outsForPitch.forEach((pa) => {
                     // hasOwnProperty looks at whether the object has the corresponding property
                     // and does not inherit it
                     // originally pa.pitch_name when the axes were switched
                     if (lineData.hasOwnProperty(pa.events)) {
-                        lineData[pa.events]++
+                        paEvents.add(pa.events);
+                        lineData[pa.events]++;
+                    }
+                });
+
+                // loop through the plate appearance events and change the count for the associated events
+                // to a percentage (i.e., divide by total plate appearances)
+                // console.log("plate appearance events:", paEvents);
+                paEvents.forEach((pa) => {
+                    // double check that the event exists first
+                    if (lineData.hasOwnProperty(pa)) {
+                        // not sure if this is allowed in JS
+                        // console.log("out percentage:", lineData.outPercentage);
+                        // console.log("line data:", lineData[pa]);
+                        lineData[pa] = (lineData[pa] / totalPAsForThisBatter) * 100;
                     }
                 });
                 transformedPlotData.push(lineData);
@@ -188,7 +204,7 @@ const ParallelCoords = () => {
         setDimensions(plotDimensions);
 
 
-        console.log(transformedPlotData);
+        // console.log(transformedPlotData);
         setPlotData(transformedPlotData);
 
         // filter pitchers from the player ID collection to match the pitchers listed in the
@@ -216,7 +232,7 @@ const ParallelCoords = () => {
 
     // drop down added below
     return (
-        <div id="parallel-coords">
+        <div id="parallel-coords-container">
             <h2>Parallel Coordinates Plot of Outs For the Mariners' Offense Based on Pitch Type</h2>
             <label htmlFor="pitcher-filter">Filter by opposing pitcher: </label>
             <select id="pitcher-filter" value={selectedPitcher} onChange={handlePitcherChange}>

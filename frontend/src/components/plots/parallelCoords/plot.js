@@ -10,6 +10,7 @@
 
 import React, { useRef } from "react";
 import * as d3 from "d3";
+import "d3-transition";
 
 const ParallelPlot = ({ dimensions, data, colorScale }) => {
     const ref = useRef();
@@ -97,9 +98,9 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
         const selectedOut = d.pitchType;
 
         // turn all groups gray first
-        d3.selectAll(".line")
+        d3.selectAll(".pitch-out")
             .transition()
-            .duration(200)
+            .duration(100)
             .style("stroke", "lightgrey")
             .style("opacity", "0.2");
 
@@ -113,7 +114,7 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
 
     // unhighlight
     const doNotHighlight = (d) => {
-        d3.selectAll(".line")
+        d3.selectAll(".pitch-out")
             .transition()
             .duration(200)
             .delay(1000)
@@ -126,19 +127,6 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
     function path(d) {
         return d3.line()(dimensions.map((i) => [xScale(i), yScale[i](d[i])]));
     }
-
-    // draw the lines
-    svg.selectAll("paths")
-        .data(data)
-        .enter()
-        .append("path")
-        .attr("class", (d) => "line-" + d.pitchType)
-        .attr("d", path)
-        .style("fill", "none")
-        .style("stroke", (d) => color(d.pitchType))
-        .style("opacity", 0.5)
-        .on("mouseover", highlight)
-        .on("mouseout", doNotHighlight);
 
     // draw the axes
     svg.append("g")
@@ -155,6 +143,40 @@ const ParallelPlot = ({ dimensions, data, colorScale }) => {
         .attr("y", -9)
         .text((d) => d)
         .style("fill", "black");
+
+    // might want to add lines as a function
+    // draw the lines
+    const plotPaths = svg.selectAll("path")
+        .data(data)
+        .enter()
+        .append("path")
+        .attr("class", (d) => "pitch-out " + d.pitchType + " " + d.outType)
+        .attr("d", path)
+        .style("fill", "none")
+        .style("stroke", (d) => color(d.pitchType))
+        .style("opacity", 0.5)
+        .on("mouseover", highlight)
+        .on("mouseout", doNotHighlight);
+
+    plotPaths.exit()
+        .remove();
+
+    // will want this to update automatically, so needs to be triggered properly somehow
+    // I think that this will eventually replace the path creation above
+    // only want to implement this after testing that the pitcher filter works
+    function updateLines() {
+        svg.selectAll(".pitch-out")
+            .data(data)
+            .join("path")
+            .attr("class", (d) => "pitch-out " + d.pitchType + " " + d.outType)
+            .transition()
+            .attr("d", path)
+            .style("fill", "none")
+            .style("stroke", (d) => color(d.pitchType))
+            .style("opacity", 0.5)
+            .on("mouseover", highlight)
+            .on("mouseout", doNotHighlight);
+    }
 
     return (
         <svg id="parallel-coords" ref={ref} />
