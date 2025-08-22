@@ -26,6 +26,7 @@ export const NavLink = styled(Link)`
     }
 `;
 
+// this might not be necessary in the end
 export const Bars = styled(FaBars)`
     display: none;
     color: #808080;
